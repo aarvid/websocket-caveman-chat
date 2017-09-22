@@ -1,0 +1,76 @@
+(in-package :wsd-caveman-chat.ps)
+
+;; this is a parenscript file that should be compiled to a static javascript file.
+
+;; this uses jquery $
+
+(defvar wsocket nil)
+(defvar wsocket-url-path "/chat-server"
+  "websocket path minus the protocol and host, see src/web.lisp")
+
+
+;; all messages are json of the form {name:"name", text:"text"}
+;; appends <div><b>name:</b>text</div> to the chat-div box.
+(defun web-socket-on-message (event)
+  (let* ((datum (@ event data))
+         (msg (chain *json* (parse datum)))
+         (chat-box ($ "#chat-div"))
+         (msg-div ($ (who-ps-html (:div))))
+         (b-node ($ (who-ps-html (:b))))
+         (name-node (chain document (create-text-node (+ (@ msg name) ": "))))
+         (msg-node (chain document (create-text-node (@ msg text)))))
+    (chain console (log "message" datum))
+    (chain b-node (append name-node))
+    (chain msg-div (append b-node) (append msg-node))
+    (chain chat-box (append msg-div))))
+
+
+;; connects to websocket server.
+;; the url is constructed based on http url.
+(defun web-socket-connect ()
+  (let ((url (+ "ws"
+                (if (eql (@ window location protocol) "https:") "s" "") ; add extra s if secure.
+                "://"
+                (@ window location host)
+                wsocket-url-path)))
+    (setf wsocket (new (*web-socket url)))
+    (setf (@ wsocket onmessage)
+          web-socket-on-message)
+    (chain console (log (+ "websocket connect " url)))))
+
+
+(defun connect-click ()
+  (web-socket-connect))
+
+
+
+(defun enter-click ()
+  (when wsocket
+    (let ((name-box ($ "#username")))
+      (when (@ name-box length)
+        (chain wsocket
+               (send (chain *json* (stringify
+                                    (create type "enter"
+                                            value (chain ($ name-box) (val))))))))))
+  t)
+
+(defun message-click ()
+  (when wsocket
+    (let ((msg-box ($ "#msg-input")))
+      (when (@ msg-box length)
+        (chain wsocket
+               (send (chain *json* (stringify
+                                    (create type "message"
+                                            value (chain ($ msg-box) (val))))))))))
+  t)
+
+(defun exit-click ()
+  (when wsocket
+    (chain wsocket
+           (send (chain *json* (stringify
+                                    (create type "exit"
+                                            value "")))))))
+
+(defun close-click ()
+  (when wsocket
+    (chain wsocket (close))))

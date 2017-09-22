@@ -1,0 +1,60 @@
+{% extends "layouts/default.html" %}
+{% block title %}Chat-Websocket-Caveman2{% endblock %}
+
+{% block css %}
+  {% super %}
+  <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css">
+{% endblock %}
+
+{% block js-head %}
+  {% super %}
+  <script src="/js/jquery-2.2.4.js"></script>
+  <script src="/js/wsd.js"></script>
+{% endblock %}
+
+  
+
+
+{% block content %}
+<div id="main">
+  Welcome to <a href="http://8arrow.org/caveman/">Caveman2</a> and
+  <a href="https://github.com/fukamachi/websocket-driver">Websocket-driver</a>
+  example!
+</div>
+<br>
+<div id="connect-div">
+  <button onclick="connectClick()">connect</button>
+</div>
+<br>
+
+<div id="name-div">
+  <label for="username">
+      Your Name:
+      <input type="text" name="username" id="username" required />
+  </label>
+
+  <button onclick="enterClick()">enter</button>
+</div>
+
+<br>
+<div id="msg-div">
+  <input type="text" id="msg-input" size=40 maxlength=80 />
+  <button onclick="messageClick()">send message</button>
+</div>
+
+<br>
+<div id="chat-div" style="border: 1px solid black; padding: 4px; height: 400px; width: 400px; overflow: auto;">
+</div>
+
+<br>
+<div id="exit-div">
+    <button onclick="exitClick()">exitChat</button>
+</div>
+
+<br>
+<div id="disconnect-div">
+    <button onclick="closeClick()">close</button>
+</div>
+
+
+{% endblock %}
