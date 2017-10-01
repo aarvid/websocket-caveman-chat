@@ -50,23 +50,29 @@
 
 ;; this is the websocket chat server.
 (defroute wsd-chat-server "/chat-server" ()
-  (log:info "env: ~a~%" (request-env *request*))
-  (let ((ws (wsd:make-server (request-env *request*)))
-        (id (incf *id*))) 
-    (wsd:on :message ws
-            (lambda (message)
-              (log:info 'message message)
-              (chat:wsd-message ws id message)))
-    (wsd:on :open ws
-            (lambda (&rest args)
-              (log:info "Connected. " args)))
-    (wsd:on :error ws
-            (lambda (&rest args)
-              (log:info "Error. " args)))
-    (wsd:on :close ws
-      (lambda (&rest args)
-        (log:info "Closed" args)
-        (chat:exit-room id)))
-    (lambda (responder)
-      (declare (ignore responder))
-      (wsd:start-connection ws))))
+  (log:info "request:"  *request*)
+  ;(log:info "headers:" (hash-table-plist (request-headers *request*)))
+  (let* ((env (request-env *request*)))
+    (when (or (getf (getf env :lack.session.options) :new-session)
+              #|(= 0 (random 2))|#)
+      (log:info "rejected foreign connection" )
+      (caveman2:throw-code 403)) ; forbidden
+    (let ((ws (wsd:make-server env))
+          (id (incf *id*))) 
+      (wsd:on :message ws
+              (lambda (message)
+                (log:info 'message message)
+                (chat:wsd-message ws id message)))
+      (wsd:on :open ws
+              (lambda (&rest args)
+                (log:info "Connected. " args)))
+      (wsd:on :error ws
+              (lambda (&rest args)
+                (log:info "Error. " args)))
+      (wsd:on :close ws
+              (lambda (&rest args)
+                (log:info "Closed" args)
+                (chat:exit-room id)))
+      (lambda (responder)
+        (declare (ignore responder))
+        (wsd:start-connection ws)))))

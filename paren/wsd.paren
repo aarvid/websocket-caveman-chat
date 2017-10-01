@@ -25,6 +25,7 @@
     (chain chat-box (append msg-div))))
 
 
+
 ;; connects to websocket server.
 ;; the url is constructed based on http url.
 (defun web-socket-connect ()

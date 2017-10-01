@@ -14,9 +14,10 @@ function webSocketOnMessage(event) {
     return chatBox.append(msgDiv);
 };
 function webSocketConnect() {
-    wsocket = new WebSocket('ws' + (window.location.protocol === 'https:' ? 's' : '') + '://' + window.location.host + wsocketUrlPath);
+    var url = 'ws' + (window.location.protocol === 'https:' ? 's' : '') + '://' + window.location.host + wsocketUrlPath;
+    wsocket = new WebSocket(url);
     wsocket.onmessage = webSocketOnMessage;
-    return console.log('connect');
+    return console.log('websocket connect ' + url);
 };
 function connectClick() {
     return webSocketConnect();
